@@ -1,2 +1,1 @@
-# kooki2
-ok
+g
