@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add or Remove Objects</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .buttons {
+        display: flex;
+        gap: 10px;
+      }
+      .objects {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        min-height: 100px;
+      }
+      .object {
+        margin: 5px;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .price {
+        font-weight: bold;
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Add or Remove Objects</h1>
+    <div class="container">
+      <div class="buttons">
+        <button id="addA">+ Addd A</button>
+        <button id="removeA">- Remove A</button>
+        <button id="addB">+ Add B</button>
+        <button id="removeB">- Remove B</button>
+      </div>
+      <div class="objects" id="objectContainer">
+        <!-- Objects will appear here -->
+      </div>
+    </div>
+
+    <!-- PayPal Button -->
+    <div id="paypal-button-container" style="margin-top: 20px"></div>
+
+    <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD"></script>
+    <script>
+      const objectContainer = document.getElementById("objectContainer");
+      let totalPrice = 0;
+
+      function updateTotalPrice() {
+        const total = [...objectContainer.children].reduce((sum, child) => {
+          return sum + parseFloat(child.dataset.price);
+        }, 0);
+        totalPrice = total.toFixed(2);
+        renderPayPalButton();
+      }
+
+      function renderPayPalButton() {
+        document.getElementById("paypal-button-container").innerHTML = "";
+        paypal
+          .Buttons({
+            createOrder: function (data, actions) {
+              return actions.order.create({
+                purchase_units: [
+                  {
+                    amount: {
+                      value: totalPrice,
+                    },
+                  },
+                ],
+              });
+            },
+            onApprove: function (data, actions) {
+              return actions.order.capture().then(function (details) {
+                alert(
+                  "Transaction completed by " + details.payer.name.given_name
+                );
+              });
+            },
+          })
+          .render("#paypal-button-container");
+      }
+
+      document.getElementById("addA").addEventListener("click", () => {
+        const objA = document.createElement("div");
+        objA.textContent = "Object A";
+        objA.className = "object";
+        objA.dataset.type = "A";
+        objA.dataset.price = "10.00";
+
+        const priceTag = document.createElement("span");
+        priceTag.className = "price";
+        priceTag.textContent = "$10.00";
+
+        objA.appendChild(priceTag);
+        objectContainer.appendChild(objA);
+        updateTotalPrice();
+      });
+
+      document.getElementById("removeA").addEventListener("click", () => {
+        const lastA = [...objectContainer.children]
+          .reverse()
+          .find((child) => child.dataset.type === "A");
+        if (lastA) {
+          objectContainer.removeChild(lastA);
+          updateTotalPrice();
+        }
+      });
+
+      document.getElementById("addB").addEventListener("click", () => {
+        const objB = document.createElement("div");
+        objB.textContent = "Object B";
+        objB.className = "object";
+        objB.dataset.type = "B";
+        objB.dataset.price = "15.00";
+
+        const priceTag = document.createElement("span");
+        priceTag.className = "price";
+        priceTag.textContent = "$15.00";
+
+        objB.appendChild(priceTag);
+        objectContainer.appendChild(objB);
+        updateTotalPrice();
+      });
+
+      document.getElementById("removeB").addEventListener("click", () => {
+        const lastB = [...objectContainer.children]
+          .reverse()
+          .find((child) => child.dataset.type === "B");
+        if (lastB) {
+          objectContainer.removeChild(lastB);
+          updateTotalPrice();
+        }
+      });
+    </script>
+  </body>
+</html>
